@@ -11,14 +11,24 @@ app.use(express.urlencoded({ extended: true }));
 app.post('/webhook/platega', async (req, res) => {
   try {
     console.log('Platega webhook received:', req.body);
+    console.log('Platega webhook headers:', req.headers);
     
-    const { order_id, status, payment_method } = req.body;
+    const merchantId = req.headers['x-merchantid'];
+    const secret = req.headers['x-secret'];
     
-    if (status === 'success' || status === 'paid') {
-      const userId = extractUserIdFromOrderId(order_id);
+    if (merchantId !== process.env.PLATEGA_SHOP_ID || secret !== process.env.PLATEGA_API_KEY) {
+      console.error('Invalid webhook authentication');
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const { id, amount, currency, status, paymentMethod, payload } = req.body;
+    
+    if (status === 'CONFIRMED') {
+      const orderId = payload;
+      const userId = extractUserIdFromOrderId(orderId);
       
       if (userId) {
-        await handlePaymentSuccess(order_id, userId);
+        await handlePaymentSuccess(orderId, userId);
       }
     }
     
@@ -167,6 +177,7 @@ app.get('/', (req, res) => {
 });
 
 function extractUserIdFromOrderId(orderId) {
+  if (!orderId) return null;
   const match = orderId.match(/order_(\d+)_/);
   return match ? parseInt(match[1]) : null;
 }
