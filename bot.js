@@ -84,28 +84,37 @@ async function handleBuySubscription(chatId, userId) {
 }
 
 async function createPlategaPayment(userId) {
+  const { v4: uuidv4 } = require('uuid');
+  const transactionId = uuidv4();
   const orderId = `order_${userId}_${Date.now()}`;
   
-  const response = await axios.post('https://api.platega.com/v1/payments', {
-    shop_id: process.env.PLATEGA_SHOP_ID,
-    amount: 155,
-    currency: 'RUB',
-    order_id: orderId,
+  const response = await axios.post('https://app.platega.io/transaction/process', {
+    paymentMethod: 2,
+    id: transactionId,
+    paymentDetails: {
+      amount: 155,
+      currency: 'RUB'
+    },
     description: 'Spotify Family подписка (1 месяц)',
-    payment_method: 'sbp',
-    success_url: `https://${process.env.REPLIT_DOMAINS || 'example.com'}/success`,
-    fail_url: `https://${process.env.REPLIT_DOMAINS || 'example.com'}/fail`,
-    notification_url: `https://${process.env.REPLIT_DOMAINS || 'example.com'}/webhook/platega`
+    return: `https://${process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS || 'example.com'}/success`,
+    failedUrl: `https://${process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS || 'example.com'}/fail`,
+    payload: orderId
   }, {
     headers: {
-      'Authorization': `Bearer ${process.env.PLATEGA_API_KEY}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-MerchantId': process.env.PLATEGA_SHOP_ID,
+      'X-Secret': process.env.PLATEGA_API_KEY
     }
   });
   
-  orders.set(orderId, { userId, status: 'pending', createdAt: Date.now() });
+  orders.set(orderId, { 
+    userId, 
+    transactionId,
+    status: 'pending', 
+    createdAt: Date.now() 
+  });
   
-  return response.data.payment_url;
+  return response.data.redirect;
 }
 
 async function handleFAQ(chatId) {
