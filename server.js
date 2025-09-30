@@ -38,7 +38,9 @@ app.post('/webhook/platega', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
+app.get('/webhook/platega', (req, res) => {
+  res.send('Webhook is alive!'); // Тестовый ответ
+});
 app.get('/success', (req, res) => {
   res.send(`
     <html>
