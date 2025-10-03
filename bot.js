@@ -120,7 +120,8 @@ async function createPlategaPayment(userId) {
 }
 
 async function handleFAQ(chatId) {
-  const faqImage = path.join(__dirname, 'attached_assets', 'detective_pikachu.png');
+  const faqImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-33-14.jpg
+');
   const faqText = `❓ Частые вопросы (FAQ)\n\n` +
     `📌 Что такое Spotify Family?\n` +
     `Это семейная подписка Spotify Premium, которая позволяет слушать музыку без рекламы, скачивать треки и наслаждаться высоким качеством звука.\n\n` +
@@ -165,7 +166,7 @@ async function handleFAQ(chatId) {
 }
 
 async function handleSupport(chatId) {
-  const supportImage = path.join(__dirname, 'attached_assets', 'help_pikachu.png');
+  const supportImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-01-50.jpg');
   const supportText = `💬 Поддержка\n\n` +
     `Если у вас возникли вопросы или проблемы, напишите администратору:\n\n` +
     `👤 @admin_username`;
@@ -205,7 +206,8 @@ async function handleSupport(chatId) {
 }
 
 async function handleBackToMenu(chatId) {
-  const menuImage = path.join(__dirname, 'attached_assets', 'spotify_pikachu.png');
+  const menuImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg
+');
   const menuText = 'Главное меню:';
   
   try {
