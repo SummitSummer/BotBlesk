@@ -1,191 +1,93 @@
-require('dotenv').config();
-const express = require('express');
-const { bot, handlePaymentSuccess } = require('./bot');
-
+import express from 'express';
+import crypto from 'crypto';
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Статическая раздача файлов (изображения)
+app.use('/static', express.static('./public'));
 
-app.post('/webhook/platega', async (req, res) => {
-  try {
-    console.log('Platega webhook received:', req.body);
-    console.log('Platega webhook headers:', req.headers);
-    
-    const merchantId = req.headers['x-merchantid'];
-    const secret = req.headers['x-secret'];
-    
-    if (merchantId !== process.env.PLATEGA_SHOP_ID || secret !== process.env.PLATEGA_API_KEY) {
-      console.error('Invalid webhook authentication');
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-    
-    const { id, amount, currency, status, paymentMethod, payload } = req.body;
-    
-    if (status === 'CONFIRMED') {
-      const orderId = payload;
-      const userId = extractUserIdFromOrderId(orderId);
-      
-      if (userId) {
-        await handlePaymentSuccess(orderId, userId);
-      }
-    }
-    
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+// Простой Telegram-бот для продаж подписок Spotify
+
+// Валидация переменных окружения
+function validateEnvironment() {
+  const required = {
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+    ADMIN_TELEGRAM_CHAT_ID: process.env.ADMIN_TELEGRAM_CHAT_ID,
+    PLATEGA_API_KEY: process.env.PLATEGA_API_KEY,
+    PLATEGA_MERCHANT_ID: process.env.PLATEGA_MERCHANT_ID
+  };
+  
+  const missing = Object.entries(required)
+    .filter(([key, value]) => !value)
+    .map(([key]) => key);
+  
+  if (missing.length > 0) {
+    console.error('❌ Отсутствуют переменные окружения:', missing.join(', '));
+    process.exit(1);
   }
-});
-app.get('/webhook/platega', (req, res) => {
-  res.send('Webhook is alive!'); // Тестовый ответ
-});
-app.get('/success', (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <title>Успешная оплата</title>
-        <meta charset="utf-8">
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          }
-          .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-          }
-          .success-icon {
-            font-size: 60px;
-            color: #4CAF50;
-          }
-          h1 {
-            color: #333;
-          }
-          p {
-            color: #666;
-            margin: 20px 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="success-icon">✅</div>
-          <h1>Оплата успешна!</h1>
-          <p>Вернитесь в Telegram-бот для завершения оформления заказа.</p>
-        </div>
-      </body>
-    </html>
-  `);
-});
-
-app.get('/fail', (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <title>Ошибка оплаты</title>
-        <meta charset="utf-8">
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-          }
-          .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-          }
-          .error-icon {
-            font-size: 60px;
-            color: #f44336;
-          }
-          h1 {
-            color: #333;
-          }
-          p {
-            color: #666;
-            margin: 20px 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="error-icon">❌</div>
-          <h1>Ошибка оплаты</h1>
-          <p>Попробуйте еще раз или свяжитесь с поддержкой в боте.</p>
-        </div>
-      </body>
-    </html>
-  `);
-});
-
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <title>Blesk Bot</title>
-        <meta charset="utf-8">
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          }
-          .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-          }
-          h1 {
-            color: #333;
-          }
-          p {
-            color: #666;
-            margin: 20px 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h1>🎵 Blesk Spotify Bot</h1>
-          <p>Бот работает!</p>
-          <p>Перейдите в Telegram для начала работы.</p>
-        </div>
-      </body>
-    </html>
-  `);
-});
-
-function extractUserIdFromOrderId(orderId) {
-  if (!orderId) return null;
-  const match = orderId.match(/order_(\d+)_/);
-  return match ? parseInt(match[1]) : null;
+  
+  console.log('✅ Все переменные окружения настроены');
+  return required;
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`✅ Bot is running`);
-  console.log(`✅ Webhook endpoint: /webhook/platega`);
-});
+const ENV = validateEnvironment();
+const TELEGRAM_BOT_TOKEN = ENV.TELEGRAM_BOT_TOKEN;
+const ADMIN_CHAT_ID = ENV.ADMIN_TELEGRAM_CHAT_ID;
+const PLATEGA_API_KEY = ENV.PLATEGA_API_KEY;
+const PLATEGA_MERCHANT_ID = ENV.PLATEGA_MERCHANT_ID;
+
+// Хранилище для пользовательских сессий (базовое файловое хранение)
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+
+const SESSIONS_FILE = './user_sessions.json';
+
+function loadSessions() {
+  if (existsSync(SESSIONS_FILE)) {
+    try {
+      const data = readFileSync(SESSIONS_FILE, 'utf8');
+      const sessions = new Map(JSON.parse(data));
+      console.log('✅ Сессии загружены:', sessions.size, 'активных');
+      return sessions;
+    } catch (error) {
+      console.warn('⚠️ Ошибка загрузки сессий, создаю новые');
+    }
+  }
+  return new Map();
+}
+
+function saveSessions(sessions) {
+  try {
+    // БЕЗОПАСНОСТЬ: НЕ сохраняем пароли Spotify на диск
+    // Сохраняем только состояние покупки без чувствительных данных
+    const safeData = Array.from(sessions.entries()).map(([chatId, data]) => {
+      const { spotifyPassword, ...safeSession } = data || {};
+      return [chatId, safeSession];
+    });
+    const data = JSON.stringify(safeData);
+    writeFileSync(SESSIONS_FILE, data);
+  } catch (error) {
+    console.error('❌ Ошибка сохранения сессий:', error);
+  }
+}
+
+const userSessions = loadSessions();
+
+// Отправка сообщения в Telegram
+async function sendTelegramMessage(chatId, text, keyboard = null, isInlineKeyboard = false) {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  
+  const payload = {
+    chat_id: chatId,
+    text: text,
+    parse_mode: 'Markdown'
+  };
+  
+  if (keyboard) {
+    if (isInlineKeyboard) {
+      payload.reply_markup = {
+        inline_keyboard: keyboard
+      };
+    } else {
+      payload.reply_markup = {
+        keyboard: keyboard,
