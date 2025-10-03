@@ -213,7 +213,11 @@ async function handleBackToMenu(chatId) {
   const menuImage = path.resolve(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg');
   console.log('Menu image path:', menuImage);
   console.log('File exists?', fs.existsSync(menuImage));
-  const menuText = 'Главное меню:';
+  const menuText = `❇️Добро пожаловать в Blesk !❇️\n\n
+❗️ВАЖНО❗️\n\n
+Перед покупкой вы должны быть уверены, что аккаунт в ближайший год не состоял в семейном плане! Супер важно!\n\n
+Если вы не уверены, обращайтесь в саппорт!\n\n
+Выберите действие:`;
   
   try {
     if (fs.existsSync(menuImage)) {
