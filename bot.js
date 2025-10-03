@@ -22,7 +22,7 @@ const mainKeyboard = {
 
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  const welcomeImage = path.join(__dirname, 'attached_assets', 'Pastel Purple Retro Bold Cafe Logo (7)_1759180055327.png');
+  const welcomeImage = path.join(__dirname, 'attached_assets', 'spotify_pikachu.png');
   
   const welcomeText = `🎵 Добро пожаловать в Blesk - магазин подписок Spotify!\n\n` +
     `Здесь вы можете приобрести доступ к Spotify Family всего за 155 рублей в месяц.\n\n` +
@@ -58,6 +58,8 @@ bot.on('callback_query', async (query) => {
     await handleSupport(chatId);
   } else if (data.startsWith('order_ready_')) {
     await handleOrderReady(data, query.from.id);
+  } else if (data === 'back_to_menu') {
+    await handleBackToMenu(chatId);
   }
 });
 
@@ -118,6 +120,7 @@ async function createPlategaPayment(userId) {
 }
 
 async function handleFAQ(chatId) {
+  const faqImage = path.join(__dirname, 'attached_assets', 'detective_pikachu.png');
   const faqText = `❓ Частые вопросы (FAQ)\n\n` +
     `📌 Что такое Spotify Family?\n` +
     `Это семейная подписка Spotify Premium, которая позволяет слушать музыку без рекламы, скачивать треки и наслаждаться высоким качеством звука.\n\n` +
@@ -130,28 +133,94 @@ async function handleFAQ(chatId) {
     `📌 Что делать, если возникли проблемы?\n` +
     `Свяжитесь с нашей поддержкой через кнопку "Поддержка" в главном меню.`;
   
-  await bot.sendMessage(chatId, faqText, {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
-      ]
+  try {
+    if (fs.existsSync(faqImage)) {
+      await bot.sendPhoto(chatId, faqImage, {
+        caption: faqText,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
+          ]
+        }
+      });
+    } else {
+      await bot.sendMessage(chatId, faqText, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
+          ]
+        }
+      });
     }
-  });
+  } catch (error) {
+    console.error('Error sending FAQ:', error);
+    await bot.sendMessage(chatId, faqText, {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
+        ]
+      }
+    });
+  }
 }
 
 async function handleSupport(chatId) {
+  const supportImage = path.join(__dirname, 'attached_assets', 'help_pikachu.png');
   const supportText = `💬 Поддержка\n\n` +
     `Если у вас возникли вопросы или проблемы, напишите администратору:\n\n` +
     `👤 @admin_username`;
   
-  await bot.sendMessage(chatId, supportText, {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: '📱 Написать админу', url: `tg://user?id=${ADMIN_ID}` }],
-        [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
-      ]
+  try {
+    if (fs.existsSync(supportImage)) {
+      await bot.sendPhoto(chatId, supportImage, {
+        caption: supportText,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '📱 Написать админу', url: `tg://user?id=${ADMIN_ID}` }],
+            [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
+          ]
+        }
+      });
+    } else {
+      await bot.sendMessage(chatId, supportText, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '📱 Написать админу', url: `tg://user?id=${ADMIN_ID}` }],
+            [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
+          ]
+        }
+      });
     }
-  });
+  } catch (error) {
+    console.error('Error sending support:', error);
+    await bot.sendMessage(chatId, supportText, {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '📱 Написать админу', url: `tg://user?id=${ADMIN_ID}` }],
+          [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
+        ]
+      }
+    });
+  }
+}
+
+async function handleBackToMenu(chatId) {
+  const menuImage = path.join(__dirname, 'attached_assets', 'spotify_pikachu.png');
+  const menuText = 'Главное меню:';
+  
+  try {
+    if (fs.existsSync(menuImage)) {
+      await bot.sendPhoto(chatId, menuImage, {
+        caption: menuText,
+        ...mainKeyboard
+      });
+    } else {
+      await bot.sendMessage(chatId, menuText, mainKeyboard);
+    }
+  } catch (error) {
+    console.error('Error sending back to menu:', error);
+    await bot.sendMessage(chatId, menuText, mainKeyboard);
+  }
 }
 
 async function handlePaymentSuccess(orderId, userId) {
@@ -238,14 +307,6 @@ bot.on('message', async (msg) => {
     });
     
     userStates.delete(userId);
-  }
-});
-
-bot.on('callback_query', async (query) => {
-  if (query.data === 'back_to_menu') {
-    const chatId = query.message.chat.id;
-    await bot.answerCallbackQuery(query.id);
-    await bot.sendMessage(chatId, 'Главное меню:', mainKeyboard);
   }
 });
 
