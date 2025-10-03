@@ -120,8 +120,7 @@ async function createPlategaPayment(userId) {
 }
 
 async function handleFAQ(chatId) {
-  const faqImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-33-14.jpg
-');
+  const faqImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-33-14.jpg');
   const faqText = `❓ Частые вопросы (FAQ)\n\n` +
     `📌 Что такое Spotify Family?\n` +
     `Это семейная подписка Spotify Premium, которая позволяет слушать музыку без рекламы, скачивать треки и наслаждаться высоким качеством звука.\n\n` +
