@@ -22,7 +22,7 @@ const mainKeyboard = {
 
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  const welcomeImage = path.resolve(__dirname, 'attached_assets', 'spotify_pikachu.png');
+  const welcomeImage = path.resolve(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg');
   console.log('Welcome image path:', welcomeImage);
   console.log('File exists?', fs.existsSync(welcomeImage));
   
@@ -122,7 +122,7 @@ async function createPlategaPayment(userId) {
 }
 
 async function handleFAQ(chatId) {
-  const faqImage = path.resolve(__dirname, 'attached_assets', 'detective_pikachu.png');
+  const faqImage = path.resolve(__dirname, 'attached_assets', 'photo_2025-10-03_14-33-14.jpg');
   console.log('FAQ image path:', faqImage);
   console.log('File exists?', fs.existsSync(faqImage));
   const faqText = `❓ Частые вопросы (FAQ)\n\n` +
@@ -169,7 +169,7 @@ async function handleFAQ(chatId) {
 }
 
 async function handleSupport(chatId) {
-  const supportImage = path.resolve(__dirname, 'attached_assets', 'help_pikachu.png');
+  const supportImage = path.resolve(__dirname, 'attached_assets', 'photo_2025-10-03_14-01-50.jpg');
   console.log('Support image path:', supportImage);
   console.log('File exists?', fs.existsSync(supportImage));
   const supportText = `💬 Поддержка\n\n` +
@@ -211,7 +211,7 @@ async function handleSupport(chatId) {
 }
 
 async function handleBackToMenu(chatId) {
-  const menuImage = path.resolve(__dirname, 'attached_assets', 'spotify_pikachu.png');
+  const menuImage = path.resolve(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg');
   console.log('Menu image path:', menuImage);
   console.log('File exists?', fs.existsSync(menuImage));
   const menuText = 'Главное меню:';
