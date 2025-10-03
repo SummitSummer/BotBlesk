@@ -22,7 +22,7 @@ const mainKeyboard = {
 
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  const welcomeImage = path.join(__dirname, 'attached_assets', 'spotify_pikachu.png');
+  const welcomeImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg');
   
   const welcomeText = `🎵 Добро пожаловать в Blesk - магазин подписок Spotify!\n\n` +
     `Здесь вы можете приобрести доступ к Spotify Family всего за 155 рублей в месяц.\n\n` +
@@ -205,8 +205,7 @@ async function handleSupport(chatId) {
 }
 
 async function handleBackToMenu(chatId) {
-  const menuImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg
-');
+  const menuImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg');
   const menuText = 'Главное меню:';
   
   try {
