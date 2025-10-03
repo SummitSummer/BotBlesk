@@ -132,28 +132,20 @@ async function handleFAQ(chatId) {
     `Не более получаса, зависит от загруза сервера, обычно от 5 до 15 минут\n\n` +
   
   
-  try {
-    if (fs.existsSync(faqImage)) {
-      await bot.sendPhoto(chatId, faqImage, {
-        caption: faqText,
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
-          ]
-        }
-      });
-    } else {
-      await bot.sendMessage(chatId, faqText, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
-          ]
-        }
-      });
-    }
-  } catch (error) {
-    console.error('Error sending FAQ:', error);
+ try {
+  if (fs.existsSync(faqImage)) {
+    await bot.sendPhoto(chatId, faqImage, {
+      caption: faqText,
+      parse_mode: 'MarkdownV2',  // Фикс для форматирования (если в faqText есть **, *, etc.)
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
+        ]
+      }
+    });
+  } else {
     await bot.sendMessage(chatId, faqText, {
+      parse_mode: 'MarkdownV2',  // Фикс для форматирования
       reply_markup: {
         inline_keyboard: [
           [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
@@ -161,6 +153,17 @@ async function handleFAQ(chatId) {
       }
     });
   }
+} catch (error) {
+  console.error('Error sending FAQ:', error);
+  await bot.sendMessage(chatId, faqText, {
+    parse_mode: 'MarkdownV2',  // Фикс для форматирования
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
+      ]
+    }
+  });
+}
 
 async function handleSupport(chatId) {
   const supportImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-01-50.jpg');
