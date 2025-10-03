@@ -161,7 +161,6 @@ async function handleFAQ(chatId) {
       }
     });
   }
-}
 
 async function handleSupport(chatId) {
   const supportImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-01-50.jpg');
@@ -201,7 +200,6 @@ async function handleSupport(chatId) {
       }
     });
   }
-}
 
 async function handleBackToMenu(chatId) {
   const menuImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg');
