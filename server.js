@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const crypto = require('crypto');  // Для верификации подписи
-const { bot, handlePaymentSuccess, orders } = require('./bot');  // Добавили orders
+const { bot, handlePaymentSuccess } = require('./bot');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,35 +13,22 @@ app.post('/webhook/platega', async (req, res) => {
     console.log('Platega webhook received:', req.body);
     console.log('Platega webhook headers:', req.headers);
     
-    // Верификация подписи (адаптируйте по реальным логам; предположим header 'x-signature' или в body)
-    const receivedSig = req.headers['x-signature'] || req.body.signature;  // Или другой field из логов
-    if (receivedSig) {
-      const payloadString = JSON.stringify(req.body);  // Или конкатенация ключевых полей: req.body.id + '|' + req.body.status + '|' + req.body.payload
-      const expectedSig = crypto.createHmac('sha256', process.env.PLATEGA_API_KEY)
-        .update(payloadString)
-        .digest('hex');
-      if (receivedSig !== expectedSig) {
-        console.error('Invalid signature');
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-    } else {
-      console.warn('No signature provided — skipping verification (not recommended for production)');
+    const merchantId = req.headers['x-merchantid'];
+    const secret = req.headers['x-secret'];
+    
+    if (merchantId !== process.env.PLATEGA_SHOP_ID || secret !== process.env.PLATEGA_API_KEY) {
+      console.error('Invalid webhook authentication');
+      return res.status(401).json({ error: 'Unauthorized' });
     }
     
     const { id, amount, currency, status, paymentMethod, payload } = req.body;
     
-    if (status === 'CONFIRMED' || status === 'success') {  // Добавили 'success' на случай другого значения; проверьте в логах
+    if (status === 'CONFIRMED') {
       const orderId = payload;
       const userId = extractUserIdFromOrderId(orderId);
       
-      if (userId && orders.has(orderId)) {
-        console.log('Processing confirmed payment for order:', orderId);
+      if (userId) {
         await handlePaymentSuccess(orderId, userId);
-        const order = orders.get(orderId);
-        order.status = 'paid';  // Обновляем статус
-        orders.set(orderId, order);
-      } else {
-        console.error('UserId or order not found for:', orderId);
       }
     }
     
@@ -52,12 +38,145 @@ app.post('/webhook/platega', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 app.get('/webhook/platega', (req, res) => {
   res.send('Webhook is alive!'); // Тестовый ответ
 });
+app.get('/success', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Успешная оплата</title>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          }
+          .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          }
+          .success-icon {
+            font-size: 60px;
+            color: #4CAF50;
+          }
+          h1 {
+            color: #333;
+          }
+          p {
+            color: #666;
+            margin: 20px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="success-icon">✅</div>
+          <h1>Оплата успешна!</h1>
+          <p>Вернитесь в Telegram-бот для завершения оформления заказа.</p>
+        </div>
+      </body>
+    </html>
+  `);
+});
 
-// ... (остальные endpoints: /success, /fail, / — без изменений)
+app.get('/fail', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Ошибка оплаты</title>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          }
+          .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          }
+          .error-icon {
+            font-size: 60px;
+            color: #f44336;
+          }
+          h1 {
+            color: #333;
+          }
+          p {
+            color: #666;
+            margin: 20px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="error-icon">❌</div>
+          <h1>Ошибка оплаты</h1>
+          <p>Попробуйте еще раз или свяжитесь с поддержкой в боте.</p>
+        </div>
+      </body>
+    </html>
+  `);
+});
+
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Blesk Bot</title>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          }
+          .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          }
+          h1 {
+            color: #333;
+          }
+          p {
+            color: #666;
+            margin: 20px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>🎵 Blesk Spotify Bot</h1>
+          <p>Бот работает!</p>
+          <p>Перейдите в Telegram для начала работы.</p>
+        </div>
+      </body>
+    </html>
+  `);
+});
 
 function extractUserIdFromOrderId(orderId) {
   if (!orderId) return null;
