@@ -13,20 +13,22 @@ const orders = new Map();
 const mainKeyboard = {
   reply_markup: {
     inline_keyboard: [
-      [{ text: '💳 Оплатить подписку 💳', callback_data: 'buy_subscription' }],
-      [{ text: '❓ FAQ ❓', callback_data: 'faq' }],
-      [{ text: '❇️ Поддержка❇️', callback_data: 'support' }]
+      [{ text: '💳 Оплатить подписку', callback_data: 'buy_subscription' }],
+      [{ text: '❓ FAQ', callback_data: 'faq' }],
+      [{ text: '💬 Поддержка', callback_data: 'support' }]
     ]
   }
 };
 
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  const welcomeImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg');
+  const welcomeImage = path.resolve(__dirname, 'attached_assets', 'spotify_pikachu.png');
+  console.log('Welcome image path:', welcomeImage);
+  console.log('File exists?', fs.existsSync(welcomeImage));
   
-  const welcomeText = `💚Добро пожаловать в Blesk !💚\n\n` +
-    `Важно! Ваш аккаунт не должен был состоять в семейном плане больше года!.\n\n` +
-    `Обратитесь в поддержку в случае если ваш аккаунт уже состоял в семейном плане`;
+  const welcomeText = `🎵 Добро пожаловать в Blesk - магазин подписок Spotify!\n\n` +
+    `Здесь вы можете приобрести доступ к Spotify Family всего за 155 рублей в месяц.\n\n` +
+    `Выберите действие:`;
   
   try {
     if (fs.existsSync(welcomeImage)) {
@@ -120,24 +122,25 @@ async function createPlategaPayment(userId) {
 }
 
 async function handleFAQ(chatId) {
-  const faqImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-33-14.jpg');
-  const faqText = `❓ **Частые вопросы (FAQ)**\n\n` +
-    `📌 **Что такое Spotify Family?**\n` +
-    `Это семейная подписка *Spotify Premium*, которая позволяет слушать музыку __без рекламы__, скачивать треки и наслаждаться высоким качеством звука.\n\n` +
-    `📌 **Как происходит активация?**\n` +
+  const faqImage = path.resolve(__dirname, 'attached_assets', 'detective_pikachu.png');
+  console.log('FAQ image path:', faqImage);
+  console.log('File exists?', fs.existsSync(faqImage));
+  const faqText = `❓ Частые вопросы (FAQ)\n\n` +
+    `📌 Что такое Spotify Family?\n` +
+    `Это семейная подписка Spotify Premium, которая позволяет слушать музыку без рекламы, скачивать треки и наслаждаться высоким качеством звука.\n\n` +
+    `📌 Как происходит активация?\n` +
     `После оплаты вы вводите логин и пароль от своего аккаунта Spotify, и наш администратор добавляет вас в семейную подписку.\n\n` +
-    `📌 **Сколько времени занимает активация?**\n` +
+    `📌 Сколько времени занимает активация?\n` +
     `Обычно от 5 минут до нескольких часов. Вы получите уведомление, когда подписка будет активирована.\n\n` +
-    `📌 **На какой срок выдается подписка?**\n` +
+    `📌 На какой срок выдается подписка?\n` +
     `Подписка выдается на 1 месяц (30 дней) с момента активации.\n\n` +
-    `📌 **Что делать, если возникли проблемы?**\n` +
+    `📌 Что делать, если возникли проблемы?\n` +
     `Свяжитесь с нашей поддержкой через кнопку "Поддержка" в главном меню.`;
-
+  
   try {
     if (fs.existsSync(faqImage)) {
       await bot.sendPhoto(chatId, faqImage, {
         caption: faqText,
-        parse_mode: 'MarkdownV2',  // Для форматирования (жирный, курсив и т.д.)
         reply_markup: {
           inline_keyboard: [
             [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
@@ -146,7 +149,6 @@ async function handleFAQ(chatId) {
       });
     } else {
       await bot.sendMessage(chatId, faqText, {
-        parse_mode: 'MarkdownV2',
         reply_markup: {
           inline_keyboard: [
             [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
@@ -157,7 +159,6 @@ async function handleFAQ(chatId) {
   } catch (error) {
     console.error('Error sending FAQ:', error);
     await bot.sendMessage(chatId, faqText, {
-      parse_mode: 'MarkdownV2',
       reply_markup: {
         inline_keyboard: [
           [{ text: '🔙 Назад в меню', callback_data: 'back_to_menu' }]
@@ -168,10 +169,12 @@ async function handleFAQ(chatId) {
 }
 
 async function handleSupport(chatId) {
-  const supportImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-01-50.jpg');
+  const supportImage = path.resolve(__dirname, 'attached_assets', 'help_pikachu.png');
+  console.log('Support image path:', supportImage);
+  console.log('File exists?', fs.existsSync(supportImage));
   const supportText = `💬 Поддержка\n\n` +
     `Если у вас возникли вопросы или проблемы, напишите администратору:\n\n` +
-    `👤 @chanceofrain`;
+    `👤 @admin_username`;
   
   try {
     if (fs.existsSync(supportImage)) {
@@ -205,12 +208,13 @@ async function handleSupport(chatId) {
       }
     });
   }
+}
 
 async function handleBackToMenu(chatId) {
-  const menuImage = path.join(__dirname, 'attached_assets', 'photo_2025-10-03_14-23-29.jpg');
-  const menuText = `💚Добро пожаловать в Blesk !💚\n\n` +
-    `Важно! Ваш аккаунт не должен был состоять в семейном плане больше года!.\n\n` +
-    `Обратитесь в поддержку в случае если ваш аккаунт уже состоял в семейном плане`;
+  const menuImage = path.resolve(__dirname, 'attached_assets', 'spotify_pikachu.png');
+  console.log('Menu image path:', menuImage);
+  console.log('File exists?', fs.existsSync(menuImage));
+  const menuText = 'Главное меню:';
   
   try {
     if (fs.existsSync(menuImage)) {
